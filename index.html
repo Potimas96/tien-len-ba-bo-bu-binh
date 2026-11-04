@@ -2,482 +2,100 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tiến Lên Miền Nam - Polime Edition</title>
-    <!-- Liên kết file CSS riêng -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiến Lên Miền Nam - Đặt Cược & 4 Người Chơi</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="game-table" class="table">
+        <!-- Hiệu ứng chữ nổ giữa bàn khi Chặt Heo / Tới Trắng -->
+        <div id="fx-banner" class="fx-banner"></div>
 
-<!-- Toast Thông Báo Donate -->
-<div class="donate-toast" id="donate-toast">
-    <span class="polymer-icon"></span>
-    <span>ông bô đã donate cho bà bô 100k</span>
-</div>
+        <!-- Hộp thoại Chọn Mức Cược trước ván mới -->
+        <div id="bet-modal" class="modal-overlay">
+            <div class="modal-box">
+                <h2>🎲 CHỌN MỨC CƯỢC VÁN MỚI</h2>
+                <p class="modal-balance">Số dư của bạn: 💰 <span id="modal-coins">100,000</span> Xu</p>
 
-<div class="table">
-    <!-- Đối thủ -->
-    <div class="opponents-row">
-        <div class="player-info" id="p1-info">
-            <div class="player-name">Bot Trái</div>
-            <div class="money-badge"><span class="polymer-icon"></span><span id="p1-money">100k</span></div>
-            <div class="card-count" id="p1-count">13 lá</div>
+                <!-- Khu vực nút chọn mức cược -->
+                <div id="bet-options" class="bet-buttons">
+                    <button id="bet-10k" onclick="confirmBet(10000)">10k</button>
+                    <button id="bet-20k" onclick="confirmBet(20000)">20k</button>
+                    <button id="bet-50k" onclick="confirmBet(50000)">50k</button>
+                    <button id="bet-100k" onclick="confirmBet(100000)">100k</button>
+                    <button id="bet-allin" class="btn-allin" onclick="confirmBet('all')">🔥 TẤT TAY (All-in)</button>
+                </div>
+
+                <!-- Khu vực hiện ra khi hết tiền -->
+                <div id="bankrupt-area" class="bankrupt-box" style="display: none;">
+                    <p>💸 Bạn đã sạch túi không đủ 10k lên bàn!</p>
+                    <button class="btn-dad" onclick="askDadForMoney()">🙏 Xin ông bô thêm 100k</button>
+                </div>
+            </div>
         </div>
-        <div class="player-info" id="p2-info">
-            <div class="player-name">Bot Giữa</div>
-            <div class="money-badge"><span class="polymer-icon"></span><span id="p2-money">100k</span></div>
-            <div class="card-count" id="p2-count">13 lá</div>
+
+        <!-- Bot 2 (Đối diện - Phía trên) -->
+        <div id="seat-2" class="seat seat-top">
+            <div class="player-info">
+                <span class="name">Bot 2 (Chị Đại)</span>
+                <span class="coins">💰 <span id="coins-2">100,000</span></span>
+                <span class="card-count">🂠 <span id="count-2">13</span> lá</span>
+                <span id="badge-2" class="badge"></span>
+            </div>
+            <div id="hand-2" class="bot-cards"></div>
         </div>
-        <div class="player-info" id="p3-info">
-            <div class="player-name">Bot Phải</div>
-            <div class="money-badge"><span class="polymer-icon"></span><span id="p3-money">100k</span></div>
-            <div class="card-count" id="p3-count">13 lá</div>
+
+        <!-- Khu vực giữa: Bot 3 (Trái) - Bàn đánh bài - Bot 1 (Phải) -->
+        <div class="middle-row">
+            <!-- Bot 3 (Bên trái) -->
+            <div id="seat-3" class="seat seat-side">
+                <div class="player-info">
+                    <span class="name">Bot 3 (Thần Bài)</span>
+                    <span class="coins">💰 <span id="coins-3">100,000</span></span>
+                    <span class="card-count">🂠 <span id="count-3">13</span> lá</span>
+                    <span id="badge-3" class="badge"></span>
+                </div>
+                <div id="hand-3" class="bot-cards"></div>
+            </div>
+
+            <!-- Khu vực đánh bài trung tâm -->
+            <div class="center-area">
+                <div class="bet-badge">Mức cược bàn: <span id="current-bet-display">10,000</span> Xu</div>
+                <div id="status-message">Hãy chọn mức cược để bắt đầu!</div>
+                <div id="sub-message"></div>
+                <div id="played-cards" class="hand played-zone"></div>
+            </div>
+
+            <!-- Bot 1 (Bên phải) -->
+            <div id="seat-1" class="seat seat-side">
+                <div class="player-info">
+                    <span class="name">Bot 1 (Tư Liều)</span>
+                    <span class="coins">💰 <span id="coins-1">100,000</span></span>
+                    <span class="card-count">🂠 <span id="count-1">13</span> lá</span>
+                    <span id="badge-1" class="badge"></span>
+                </div>
+                <div id="hand-1" class="bot-cards"></div>
+            </div>
+        </div>
+
+        <!-- Người chơi (Phía dưới) -->
+        <div id="seat-0" class="seat seat-bottom">
+            <div class="player-info">
+                <span class="name">Bạn</span>
+                <span class="coins">💰 <span id="coins-0">100,000</span></span>
+                <span id="badge-0" class="badge"></span>
+            </div>
+            <div id="hand-0" class="hand"></div>
+            <div class="controls">
+                <button id="btn-play" onclick="playSelectedCards()">Đánh bài</button>
+                <button id="btn-pass" onclick="passTurn()">Bỏ lượt</button>
+                <button id="btn-sort" onclick="toggleSortPlayerHand()">Xếp bài: Độ lớn</button>
+                <button id="btn-new" onclick="openBetModal()">Ván mới (Đổi cược)</button>
+                <button id="btn-sound" onclick="toggleSound()">🔊 Âm thanh: Bật</button>
+            </div>
         </div>
     </div>
 
-    <!-- Giữa bàn -->
-    <div class="center-area">
-        <div class="bet-info-board">
-            <span>Mức Cược:</span>
-            <span class="polymer-icon"></span>
-            <strong id="current-bet-display">10k</strong>
-        </div>
-        <div class="last-played-container" id="center-cards"></div>
-    </div>
-
-    <!-- Người chơi -->
-    <div class="user-area">
-        <div class="player-info" id="p0-info" style="min-width: 150px; margin-bottom: 2px;">
-            <div class="player-name" style="color: #2ecc71;">Bạn (Chủ bàn)</div>
-            <div class="money-badge"><span class="polymer-icon"></span><span id="p0-money">100k</span></div>
-        </div>
-
-        <div class="status-msg" id="status-msg">Chọn mức cược để bắt đầu!</div>
-        
-        <div class="hand-wrapper">
-            <div class="hand" id="user-hand"></div>
-        </div>
-
-        <div class="controls">
-            <button class="btn btn-sort" onclick="sortHand()">Xếp Bài</button>
-            <button class="btn btn-pass" id="btn-pass" onclick="passTurn()">Bỏ Lượt</button>
-            <button class="btn" id="btn-play" onclick="playSelectedCards()">Đánh Bài</button>
-            <button class="btn btn-donate" onclick="add100k()">+100k Donate</button>
-        </div>
-    </div>
-</div>
-
-<!-- Modal Chọn Mức Cược -->
-<div class="modal-overlay" id="bet-modal">
-    <div class="modal">
-        <h2>Chủ Bàn Chọn Cược</h2>
-        <p style="font-size: 13px; color: #ccc;">Chọn mức cược Polime cho ván đấu:</p>
-        <div class="bet-options">
-            <button class="btn-bet" onclick="selectBet(10000)"><span class="polymer-icon"></span> 10k</button>
-            <button class="btn-bet" onclick="selectBet(20000)"><span class="polymer-icon"></span> 20k</button>
-            <button class="btn-bet" onclick="selectBet(50000)"><span class="polymer-icon"></span> 50k</button>
-            <button class="btn-bet" onclick="selectBet(100000)"><span class="polymer-icon"></span> 100k</button>
-            <button class="btn-bet" style="grid-column: span 2;" onclick="selectBet(500000)"><span class="polymer-icon"></span> 500k</button>
-        </div>
-        <button class="btn btn-donate" style="width: 100%; margin-top: 5px; padding: 10px;" onclick="add100k()">🎁 Xin Ông Bô Donate 100k</button>
-    </div>
-</div>
-
-<script>
-    const SUITS = ['♠', '♣', '♦', '♥'];
-    const RANKS = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2'];
-    
-    let money = [100000, 100000, 100000, 100000];
-    let currentBet = 10000;
-    let deck = [];
-    let hands = [[], [], [], []];
-    let selectedIndices = [];
-    let currentTurn = 0;
-    let lastPlay = null;
-    let passedPlayers = [false, false, false, false];
-    let isGameOver = false;
-
-    function loadSavedMoney() {
-        const saved = localStorage.getItem('game_money');
-        if (saved) money = JSON.parse(saved);
-        updateMoneyUI();
-    }
-
-    function formatMoney(amount) {
-        if (amount >= 1000000) return (amount / 1000000).toFixed(1) + 'M';
-        if (amount >= 1000) return (amount / 1000) + 'k';
-        return amount.toString();
-    }
-
-    function updateMoneyUI() {
-        for (let i = 0; i < 4; i++) {
-            document.getElementById(`p${i}-money`).innerText = formatMoney(money[i]);
-        }
-        localStorage.setItem('game_money', JSON.stringify(money));
-    }
-
-    function add100k() {
-        money[0] += 100000;
-        updateMoneyUI();
-        const toast = document.getElementById('donate-toast');
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2500);
-    }
-
-    function selectBet(bet) {
-        if (money[0] < bet) {
-            alert("Bạn không đủ tiền cược! Bấm Donate để nhận thêm tiền nhé.");
-            return;
-        }
-        currentBet = bet;
-        document.getElementById('current-bet-display').innerText = formatMoney(bet);
-        document.getElementById('bet-modal').style.display = 'none';
-        initGame();
-    }
-
-    function createDeck() {
-        deck = [];
-        for (let r = 0; r < RANKS.length; r++) {
-            for (let s = 0; s < SUITS.length; s++) {
-                deck.push({ rank: RANKS[r], suit: SUITS[s], rankIdx: r, suitIdx: s, val: r * 4 + s });
-            }
-        }
-    }
-
-    function shuffleDeck() {
-        for (let i = deck.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [deck[i], deck[j]] = [deck[j], deck[i]];
-        }
-    }
-
-    function initGame() {
-        createDeck();
-        shuffleDeck();
-        hands = [[], [], [], []];
-        passedPlayers = [false, false, false, false];
-        lastPlay = null;
-        isGameOver = false;
-
-        for (let i = 0; i < 52; i++) {
-            hands[i % 4].push(deck[i]);
-        }
-
-        for (let i = 0; i < 4; i++) {
-            hands[i].sort((a, b) => a.val - b.val);
-        }
-
-        currentTurn = 0;
-        for (let i = 0; i < 4; i++) {
-            if (hands[i].some(c => c.val === 0)) {
-                currentTurn = i;
-                break;
-            }
-        }
-
-        selectedIndices = [];
-        renderHand();
-        updateUI();
-        renderCenterCards([], false);
-        highlightActivePlayer();
-
-        if (currentTurn !== 0) {
-            setTimeout(botTurn, 1000);
-        } else {
-            document.getElementById('status-msg').innerText = "Ván mới - Đến lượt bạn đánh!";
-        }
-    }
-
-    function highlightActivePlayer() {
-        for (let i = 0; i < 4; i++) {
-            const el = document.getElementById(`p${i}-info`);
-            if (el) {
-                if (i === currentTurn) el.classList.add('active');
-                else el.classList.remove('active');
-            }
-        }
-    }
-
-    function sortHand() {
-        hands[0].sort((a, b) => a.val - b.val);
-        selectedIndices = [];
-        renderHand();
-    }
-
-    function renderHand() {
-        const handEl = document.getElementById('user-hand');
-        handEl.innerHTML = '';
-        hands[0].forEach((card, index) => {
-            const cardEl = document.createElement('div');
-            const isRed = card.suit === '♦' || card.suit === '♥';
-            cardEl.className = `card ${isRed ? 'red' : 'black'} ${selectedIndices.includes(index) ? 'selected' : ''}`;
-            cardEl.style.zIndex = index + 1;
-            cardEl.innerHTML = `
-                <div class="card-corner">${card.rank}<br>${card.suit}</div>
-                <div class="card-center-suit">${card.suit}</div>
-            `;
-            cardEl.onclick = () => {
-                if (currentTurn === 0) toggleSelectCard(index);
-            };
-            handEl.appendChild(cardEl);
-        });
-    }
-
-    function toggleSelectCard(index) {
-        if (selectedIndices.includes(index)) {
-            selectedIndices = selectedIndices.filter(i => i !== index);
-        } else {
-            selectedIndices.push(index);
-        }
-        renderHand();
-    }
-
-    function updateUI() {
-        document.getElementById('p1-count').innerText = `${hands[1].length} lá`;
-        document.getElementById('p2-count').innerText = `${hands[2].length} lá`;
-        document.getElementById('p3-count').innerText = `${hands[3].length} lá`;
-    }
-
-    function getCardCombo(cards) {
-        if (!cards || cards.length === 0) return null;
-        const sorted = [...cards].sort((a,b) => a.val - b.val);
-        const len = sorted.length;
-
-        if (len === 1) return { type: 'SINGLE', maxVal: sorted[0].val, len: 1 };
-        if (len === 2 && sorted[0].rankIdx === sorted[1].rankIdx) return { type: 'PAIR', maxVal: sorted[1].val, len: 2 };
-        if (len === 3 && sorted[0].rankIdx === sorted[1].rankIdx && sorted[1].rankIdx === sorted[2].rankIdx) return { type: 'TRIPLE', maxVal: sorted[2].val, len: 3 };
-
-        if (len >= 3) {
-            let isStraight = true;
-            for (let i = 0; i < len - 1; i++) {
-                if (sorted[i].rankIdx === 12 || sorted[i+1].rankIdx - sorted[i].rankIdx !== 1) {
-                    isStraight = false;
-                    break;
-                }
-            }
-            if (isStraight) return { type: 'STRAIGHT', maxVal: sorted[len - 1].val, len: len };
-        }
-
-        return null;
-    }
-
-    function isValidBeat(newCards, oldCards) {
-        const newCombo = getCardCombo(newCards);
-        const oldCombo = getCardCombo(oldCards);
-        
-        if (!newCombo) return false;
-        if (!oldCombo) return true;
-
-        if (newCombo.type === oldCombo.type && newCombo.len === oldCombo.len) {
-            return newCombo.maxVal > oldCombo.maxVal;
-        }
-        return false;
-    }
-
-    function playSelectedCards() {
-        if (currentTurn !== 0 || isGameOver) return;
-        if (selectedIndices.length === 0) return;
-
-        selectedIndices.sort((a, b) => a - b);
-        const playedCards = selectedIndices.map(i => hands[0][i]);
-
-        if (lastPlay && lastPlay.player !== 0 && !isValidBeat(playedCards, lastPlay.cards)) {
-            alert("Bài đánh ra không hợp lệ hoặc nhỏ hơn bài trên bàn!");
-            return;
-        }
-
-        if (!lastPlay && !getCardCombo(playedCards)) {
-            alert("Bộ bài không hợp lệ!");
-            return;
-        }
-
-        selectedIndices.sort((a, b) => b - a);
-        selectedIndices.forEach(i => hands[0].splice(i, 1));
-        
-        lastPlay = { player: 0, cards: playedCards };
-        selectedIndices = [];
-        renderCenterCards(playedCards, true);
-        renderHand();
-        updateUI();
-
-        if (checkWin(0)) return;
-        nextTurn();
-    }
-
-    function passTurn() {
-        if (currentTurn !== 0 || isGameOver) return;
-        if (!lastPlay || lastPlay.player === 0) {
-            alert("Bạn đang giữ vòng, không thể bỏ lượt!");
-            return;
-        }
-        passedPlayers[0] = true;
-        document.getElementById('status-msg').innerText = "Bạn đã bỏ lượt!";
-        nextTurn();
-    }
-
-    function nextTurn() {
-        let activeCount = passedPlayers.filter(p => !p).length;
-        if (activeCount <= 1 && lastPlay) {
-            passedPlayers = [false, false, false, false];
-            currentTurn = lastPlay.player;
-            lastPlay = null;
-            document.getElementById('status-msg').innerText = `Vòng mới! ${getRoleName(currentTurn)} giữ quyền đánh.`;
-        } else {
-            do {
-                currentTurn = (currentTurn + 1) % 4;
-            } while (passedPlayers[currentTurn]);
-        }
-
-        highlightActivePlayer();
-
-        if (currentTurn !== 0 && !isGameOver) {
-            setTimeout(botTurn, 1000);
-        } else if (currentTurn === 0) {
-            document.getElementById('status-msg').innerText = "Đến lượt bạn!";
-        }
-    }
-
-    function botFindAllCombos(botHand) {
-        let pairs = [];
-        let triples = [];
-        let straights = [];
-
-        let rankGroups = {};
-        botHand.forEach(c => {
-            if (!rankGroups[c.rankIdx]) rankGroups[c.rankIdx] = [];
-            rankGroups[c.rankIdx].push(c);
-        });
-
-        for (let r in rankGroups) {
-            if (rankGroups[r].length >= 2) pairs.push(rankGroups[r].slice(0, 2));
-            if (rankGroups[r].length >= 3) triples.push(rankGroups[r].slice(0, 3));
-        }
-
-        let nonTwos = botHand.filter(c => c.rankIdx < 12);
-        let uniqueRanks = [...new Set(nonTwos.map(c => c.rankIdx))].sort((a,b) => a - b);
-        
-        for (let len = uniqueRanks.length; len >= 3; len--) {
-            for (let i = 0; i <= uniqueRanks.length - len; i++) {
-                let subRanks = uniqueRanks.slice(i, i + len);
-                let isSeq = true;
-                for (let j = 0; j < subRanks.length - 1; j++) {
-                    if (subRanks[j+1] - subRanks[j] !== 1) { isSeq = false; break; }
-                }
-                if (isSeq) {
-                    let straightCards = subRanks.map(r => botHand.find(c => c.rankIdx === r));
-                    straights.push(straightCards);
-                }
-            }
-        }
-
-        return { pairs, triples, straights };
-    }
-
-    function botTurn() {
-        if (isGameOver) return;
-
-        let botHand = hands[currentTurn];
-        let cardsToPlay = null;
-        let { pairs, triples, straights } = botFindAllCombos(botHand);
-
-        if (!lastPlay || lastPlay.player === currentTurn) {
-            if (straights.length > 0) {
-                cardsToPlay = straights[0];
-            } else if (triples.length > 0) {
-                cardsToPlay = triples[0];
-            } else if (pairs.length > 0) {
-                cardsToPlay = pairs[0];
-            } else {
-                cardsToPlay = [botHand[0]];
-            }
-        } else {
-            const targetCombo = getCardCombo(lastPlay.cards);
-            if (targetCombo) {
-                if (targetCombo.type === 'SINGLE') {
-                    let validCards = botHand.filter(c => c.val > targetCombo.maxVal);
-                    if (validCards.length > 0) {
-                        cardsToPlay = [validCards[0]];
-                    }
-                } else if (targetCombo.type === 'PAIR') {
-                    for (let p of pairs) {
-                        if (isValidBeat(p, lastPlay.cards)) {
-                            cardsToPlay = p;
-                            break;
-                        }
-                    }
-                } else if (targetCombo.type === 'TRIPLE') {
-                    for (let t of triples) {
-                        if (isValidBeat(t, lastPlay.cards)) {
-                            cardsToPlay = t;
-                            break;
-                        }
-                    }
-                } else if (targetCombo.type === 'STRAIGHT') {
-                    for (let s of straights) {
-                        if (s.length === targetCombo.len && isValidBeat(s, lastPlay.cards)) {
-                            cardsToPlay = s;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (cardsToPlay) {
-            hands[currentTurn] = botHand.filter(c => !cardsToPlay.includes(c));
-            lastPlay = { player: currentTurn, cards: cardsToPlay };
-            renderCenterCards(cardsToPlay, true);
-            updateUI();
-            document.getElementById('status-msg').innerText = `${getRoleName(currentTurn)} đã đánh!`;
-
-            if (checkWin(currentTurn)) return;
-            nextTurn();
-        } else {
-            passedPlayers[currentTurn] = true;
-            document.getElementById('status-msg').innerText = `${getRoleName(currentTurn)} Bỏ lượt!`;
-            nextTurn();
-        }
-    }
-
-    function checkWin(playerIdx) {
-        if (hands[playerIdx].length === 0) {
-            isGameOver = true;
-            if (playerIdx === 0) {
-                money[0] += currentBet * 3;
-                for (let i = 1; i < 4; i++) money[i] -= currentBet;
-                alert(`🎉 CHÚC MỪNG BẠN THẮNG VÁN CƯỢC +${formatMoney(currentBet * 3)} POLIME!`);
-            } else {
-                money[playerIdx] += currentBet * 3;
-                money[0] -= currentBet;
-                alert(`😭 ${getRoleName(playerIdx)} đã tới nhất! Bạn mất -${formatMoney(currentBet)} Polime.`);
-            }
-            updateMoneyUI();
-            document.getElementById('bet-modal').style.display = 'flex';
-            return true;
-        }
-        return false;
-    }
-
-    function getRoleName(idx) {
-        return ['Bạn', 'Bot Trái', 'Bot Giữa', 'Bot Phải'][idx];
-    }
-
-    function renderCenterCards(cards, animate = false) {
-        const centerEl = document.getElementById('center-cards');
-        centerEl.innerHTML = '';
-        cards.forEach(card => {
-            const isRed = card.suit === '♦' || card.suit === '♥';
-            const cardEl = document.createElement('div');
-            cardEl.className = `card ${isRed ? 'red' : 'black'} ${animate ? 'play-anim' : ''}`;
-            cardEl.innerHTML = `
-                <div class="card-corner">${card.rank}<br>${card.suit}</div>
-                <div class="card-center-suit">${card.suit}</div>
-            `;
-            centerEl.appendChild(cardEl);
-        });
-    }
-
-    loadSavedMoney();
-</script>
+    <script src="script.js"></script>
 </body>
 </html>
