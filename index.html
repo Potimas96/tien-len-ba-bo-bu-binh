@@ -2,31 +2,25 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tiến Lên Miền Nam - Đặt Cược & 4 Người Chơi</title>
+    <!-- Dòng meta này cực kỳ quan trọng giúp mobile tự động co giãn tỉ lệ chuẩn -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bà bô trùm ma cao</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="game-table" class="table">
-        <!-- Hiệu ứng chữ nổ giữa bàn khi Chặt Heo / Tới Trắng -->
-        <div id="fx-banner" class="fx-banner"></div>
-
-        <!-- Hộp thoại Chọn Mức Cược trước ván mới -->
+        <!-- Hộp thoại Chọn Mức Cược -->
         <div id="bet-modal" class="modal-overlay">
             <div class="modal-box">
                 <h2>🎲 CHỌN MỨC CƯỢC VÁN MỚI</h2>
                 <p class="modal-balance">Số dư của bạn: 💰 <span id="modal-coins">100,000</span> Xu</p>
-
-                <!-- Khu vực nút chọn mức cược -->
                 <div id="bet-options" class="bet-buttons">
                     <button id="bet-10k" onclick="confirmBet(10000)">10k</button>
                     <button id="bet-20k" onclick="confirmBet(20000)">20k</button>
                     <button id="bet-50k" onclick="confirmBet(50000)">50k</button>
                     <button id="bet-100k" onclick="confirmBet(100000)">100k</button>
-                    <button id="bet-allin" class="btn-allin" onclick="confirmBet('all')">🔥 TẤT TAY (All-in)</button>
+                    <button id="bet-allin" class="btn-allin" onclick="confirmBet('all')">🔥 TẤT TAY</button>
                 </div>
-
-                <!-- Khu vực hiện ra khi hết tiền -->
                 <div id="bankrupt-area" class="bankrupt-box" style="display: none;">
                     <p>💸 Bạn đã sạch túi không đủ 10k lên bàn!</p>
                     <button class="btn-dad" onclick="askDadForMoney()">🙏 Xin ông bô thêm 100k</button>
@@ -34,10 +28,12 @@
             </div>
         </div>
 
-        <!-- Bot 2 (Đối diện - Phía trên) -->
+        <div id="fx-banner" class="fx-banner"></div>
+
+        <!-- Bot 2 (Phía trên) -->
         <div id="seat-2" class="seat seat-top">
             <div class="player-info">
-                <span class="name">Bot 2 (Chị Đại)</span>
+                <span class="name">Bot 2</span>
                 <span class="coins">💰 <span id="coins-2">100,000</span></span>
                 <span class="card-count">🂠 <span id="count-2">13</span> lá</span>
                 <span id="badge-2" class="badge"></span>
@@ -45,12 +41,11 @@
             <div id="hand-2" class="bot-cards"></div>
         </div>
 
-        <!-- Khu vực giữa: Bot 3 (Trái) - Bàn đánh bài - Bot 1 (Phải) -->
+        <!-- Giữa bàn: Bot 3 (Trái) - Khu vực đánh - Bot 1 (Phải) -->
         <div class="middle-row">
-            <!-- Bot 3 (Bên trái) -->
             <div id="seat-3" class="seat seat-side">
                 <div class="player-info">
-                    <span class="name">Bot 3 (Thần Bài)</span>
+                    <span class="name">Bot 3</span>
                     <span class="coins">💰 <span id="coins-3">100,000</span></span>
                     <span class="card-count">🂠 <span id="count-3">13</span> lá</span>
                     <span id="badge-3" class="badge"></span>
@@ -58,18 +53,16 @@
                 <div id="hand-3" class="bot-cards"></div>
             </div>
 
-            <!-- Khu vực đánh bài trung tâm -->
             <div class="center-area">
-                <div class="bet-badge">Mức cược bàn: <span id="current-bet-display">10,000</span> Xu</div>
-                <div id="status-message">Hãy chọn mức cược để bắt đầu!</div>
+                <div class="bet-badge">Cược: <span id="current-bet-display">10,000</span> Xu</div>
+                <div id="status-message">Chọn mức cược để bắt đầu!</div>
                 <div id="sub-message"></div>
                 <div id="played-cards" class="hand played-zone"></div>
             </div>
 
-            <!-- Bot 1 (Bên phải) -->
             <div id="seat-1" class="seat seat-side">
                 <div class="player-info">
-                    <span class="name">Bot 1 (Tư Liều)</span>
+                    <span class="name">Bot 1</span>
                     <span class="coins">💰 <span id="coins-1">100,000</span></span>
                     <span class="card-count">🂠 <span id="count-1">13</span> lá</span>
                     <span id="badge-1" class="badge"></span>
@@ -87,11 +80,11 @@
             </div>
             <div id="hand-0" class="hand"></div>
             <div class="controls">
-                <button id="btn-play" onclick="playSelectedCards()">Đánh bài</button>
-                <button id="btn-pass" onclick="passTurn()">Bỏ lượt</button>
-                <button id="btn-sort" onclick="toggleSortPlayerHand()">Xếp bài: Độ lớn</button>
-                <button id="btn-new" onclick="openBetModal()">Ván mới (Đổi cược)</button>
-                <button id="btn-sound" onclick="toggleSound()">🔊 Âm thanh: Bật</button>
+                <button id="btn-play" onclick="playSelectedCards()">Đánh</button>
+                <button id="btn-pass" onclick="passTurn()">Bỏ</button>
+                <button id="btn-sort" onclick="toggleSortPlayerHand()">Xếp</button>
+                <button id="btn-new" onclick="openBetModal()">Ván mới</button>
+                <button id="btn-sound" onclick="toggleSound()">🔊</button>
             </div>
         </div>
     </div>
